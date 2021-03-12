@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Gross Value Added (GVA) from 1998 to 2018</title>
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+
+<!--Load the chart libraries. Dimple is built on D3, and you need to also add D3-->
+<script charset="utf-8" src="https://d3js.org/d3.v4.min.js"></script>
+<script charset="utf-8" src="https://cdnjs.cloudflare.com/ajax/libs/dimple/2.3.0/dimple.latest.min.js"></script>
+
+<style>    
+    #chartContainer {width: 840px; margin: auto; margin-top: 50px; }
+    #chartContainer p {margin-left: 60px; margin-bottom: 5px; margin-top: 0; padding: 0;}
+    #charttitle {font: bold 22px  Verdana, sans-serif;}
+</style>
+
+</head>
+
+    
+<body>
+
+<!--This is the div container for the chart-->
+
+<div id="chartContainer">
+      
+    <p id="charttitle">Chart title is here</p>
+    <p id="chartsubhead">From 1998 to 2018 </p>
+    <p id="chartsubhead">£ 1000 million </p>
+    
+   <p><select id="CityMenu"><option>Change the Local Authority Here:</option></select></p>  <!-- This is the drop down menu to select different authorities-->
+
+</div>
+
+
+
+<script>
+
+
+//This statement loads the data from the CSV file, and then runs the function after the CSV is loaded. CityData is an array that contains the CSV data
+
+      d3.csv("London_GVA.csv", function(CityData) {
+           
+        var chartdata;
+         
+          
+        var cityMenu = document.getElementById("CityMenu"); 
+     
+        for(var i = 0; i < CityData.length; i++) {            // In this loop we add the names of all the Cities in the CSV to the drop down menu
+            var el = document.createElement("option");
+            el.textContent = CityData[i].CityName;
+            el.value = CityData[i].Index;
+            cityMenu.appendChild(el);
+            }       
+        
+        function SetCityData(index) {   // Function that extracts the Value timeseries for the selected city
+          
+                console.log(CityData[index]); // Show the data of the row in the console
+
+                document.getElementById("charttitle").innerHTML = CityData[index].CityName; // The name of the city is inserted into the chart title
+
+                // Dimple requires each data point on a time series to be a separate row. Below we insert the Value data from the CityData array into a new array of JSON objects in the required format
+                chartdata = [
+                  { "Year":"1998","Value":(CityData[index].y1998) },
+                  { "Year":"1999","Value":(CityData[index].y1999) },
+                  { "Year":"2000","Value":(CityData[index].y2000) },
+                  { "Year":"2001","Value":(CityData[index].y2001) },
+                  { "Year":"2002","Value":(CityData[index].y2002) },
+                  { "Year":"2003","Value":(CityData[index].y2003) },
+                  { "Year":"2004","Value":(CityData[index].y2004) },
+                  { "Year":"2005","Value":(CityData[index].y2005) },
+                  { "Year":"2006","Value":(CityData[index].y2006) },
+                  { "Year":"2007","Value":(CityData[index].y2007) },
+                  { "Year":"2008","Value":(CityData[index].y2008) },
+                  { "Year":"2009","Value":(CityData[index].y2009) },
+                  { "Year":"2010","Value":(CityData[index].y2010) },
+                  { "Year":"2011","Value":(CityData[index].y2011) },
+                  { "Year":"2012","Value":(CityData[index].y2012) },
+                  { "Year":"2013","Value":(CityData[index].y2013) },
+                  { "Year":"2014","Value":(CityData[index].y2014) },
+                  { "Year":"2015","Value":(CityData[index].y2015) },
+                  { "Year":"2016","Value":(CityData[index].y2016) },
+                  { "Year":"2017","Value":(CityData[index].y2017) },
+                  { "Year":"2018","Value":(CityData[index].y2018) }
+                ];
+
+        }
+        
+        SetCityData(0);
+        
+        
+        var svg = dimple.newSvg("#chartContainer", 840, 440); // The chart is an svg variable assigned to the chartcontainer div. It's width and height are also assigned here
+        
+            
+        var myChart = new dimple.chart(svg, chartdata);  // Create the chart
+        myChart.setBounds(60, 15, 700, 300);            // Set the chart bounds within the svg container
+
+        myChart.defaultColors = [
+            new dimple.color("#54aae3"),
+            new dimple.color("#54aae3")
+        ];
+
+
+        var x = myChart.addTimeAxis("x", "Year", "%Y", "%Y");  // Define the x axis. The latter statements define the date format which we want to be year only
+        x.timeInterval = 1;  
+
+        var y = myChart.addMeasureAxis("y", "Value"); // Define the y axis
+        y.ticks = 15;
+
+        var s = myChart.addSeries("City", dimple.plot.line);
+        s.lineMarkers = true;
+        s.interpolation = "cardinal";
+
+        myChart.draw(500); // Draw the chart. The number is the animation delay in miliseconds
+
+
+        svg.selectAll("path.dimple-proj").style("stroke-dasharray", "2"); // Some minor stying changes using the svg selectAll statement. Make the projected data a dashed line and the grid colour lighter.
+        svg.selectAll("path.domain").style("stroke", "#CCC");
+        svg.selectAll("g.tick line").style("stroke", "#CCC");
+
+
+        document.getElementById("CityMenu").onchange = function() {    // This is the event listener that runs when the user changes the menu
+           var x = document.getElementById("CityMenu").value;
+           console.log(x);
+           SetCityData(x);   // Run the function that will update chartdata with the user selected city
+            
+           svg.selectAll(".dimple-marker,.dimple-marker-back").remove(); // There's a bug where it doesn't remove the markers from the previous series. 
+            
+           myChart.data = chartdata; // Update the chart with the new chartdata
+           myChart.draw(500);
+         }          
+          
+          
+          
+      });
+
+
+</script>
+
+</body>
+</html>
